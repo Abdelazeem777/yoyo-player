@@ -54,6 +54,7 @@ class YoYoPlayer extends StatefulWidget {
 
   /// video Type
   final void Function(String videoType) onPlayingVideo;
+  final bool fullScreen;
 
   ///
   /// ```dart
@@ -76,6 +77,7 @@ class YoYoPlayer extends StatefulWidget {
     this.videoLoadingStyle,
     this.onFullScreen,
     this.onPlayingVideo,
+    this.fullScreen = false,
   }) : super(key: key);
 
   @override
@@ -83,7 +85,9 @@ class YoYoPlayer extends StatefulWidget {
 }
 
 class _YoYoPlayerState extends State<YoYoPlayer>
-    with SingleTickerProviderStateMixin {
+    with
+        SingleTickerProviderStateMixin,
+        AutomaticKeepAliveClientMixin<YoYoPlayer> {
   //video play type (hls,mp4,mkv,offline)
   String playType;
   // Animation Controller
@@ -146,7 +150,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
         .animate(controlBarAnimationController);
     var widgetsBinding = WidgetsBinding.instance;
 
-    widgetsBinding.addPostFrameCallback((callback) {
+    /* widgetsBinding.addPostFrameCallback((callback) {
       widgetsBinding.addPersistentFrameCallback((callback) {
         if (context == null) return;
         var orientation = MediaQuery.of(context).orientation;
@@ -171,7 +175,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
         //
         widgetsBinding.scheduleFrame();
       });
-    });
+    }); */
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.landscapeLeft,
@@ -189,6 +193,13 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+    if (this.fullScreen != widget.fullScreen) {
+      this.fullScreen = widget.fullScreen;
+      fullScreen
+          ? OrientationPlugin.forceOrientation(DeviceOrientation.landscapeRight)
+          : OrientationPlugin.forceOrientation(DeviceOrientation.portraitUp);
+    }
     final videoChildren = <Widget>[
       GestureDetector(
         onTap: () {
@@ -248,7 +259,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
                     width: 5,
                   ),
                   InkWell(
-                    onTap: () => toggleFullScreen(),
+                    onTap: toggleFullScreen,
                     child: Icon(
                       Icons.fullscreen,
                       color: Colors.white,
@@ -485,7 +496,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 // video Listener
   void listener() async {
     if (controller.value.initialized && controller.value.isPlaying) {
-      if (!await Wakelock.isEnabled) {
+      if (!await Wakelock.enabled) {
         await Wakelock.enable();
       }
       setState(() {
@@ -495,7 +506,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
         videoDurationSecond = controller.value.duration.inSeconds.toDouble();
       });
     } else {
-      if (await Wakelock.isEnabled) {
+      if (await Wakelock.enabled) {
         await Wakelock.disable();
         setState(() {});
       }
@@ -507,11 +518,9 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     showTime = Timer(Duration(milliseconds: 5000), () {
       if (controller != null && controller.value.isPlaying) {
         if (showMenu) {
-          setState(() {
-            showMenu = false;
-            m3u8show = false;
-            controlBarAnimationController.reverse();
-          });
+          showMenu = false;
+          m3u8show = false;
+          controlBarAnimationController.reverse();
         }
       }
     });
@@ -665,10 +674,72 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   }
 
   void toggleFullScreen() {
+    var route = MaterialPageRoute(
+        builder: (context) => FullScreenYoYoPlayer(
+              aspectRatio: widget.aspectRatio,
+              onFullScreen: widget.onFullScreen,
+              onPlayingVideo: widget.onPlayingVideo,
+              url: widget.url,
+              videoLoadingStyle: widget.videoLoadingStyle,
+              videoStyle: widget.videoStyle,
+              fullScreen: true,
+            ));
     if (fullScreen) {
       OrientationPlugin.forceOrientation(DeviceOrientation.portraitUp);
+      SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values);
+      Navigator.of(context).pop();
     } else {
-      OrientationPlugin.forceOrientation(DeviceOrientation.landscapeRight);
+      Navigator.of(context).push(route);
     }
+  }
+
+  @override
+  bool get wantKeepAlive => true;
+}
+
+class FullScreenYoYoPlayer extends StatelessWidget {
+  const FullScreenYoYoPlayer({
+    Key key,
+    @required this.url,
+    @required this.aspectRatio,
+    @required this.onFullScreen,
+    @required this.onPlayingVideo,
+    @required this.videoLoadingStyle,
+    @required this.videoStyle,
+    @required this.fullScreen,
+  }) : super(key: key);
+  final String url;
+  final double aspectRatio;
+  final void Function(bool) onFullScreen;
+  final void Function(String) onPlayingVideo;
+  final VideoLoadingStyle videoLoadingStyle;
+  final VideoStyle videoStyle;
+  final bool fullScreen;
+  @override
+  Widget build(BuildContext context) {
+    // OrientationPlugin.forceOrientation(DeviceOrientation.landscapeRight);
+    SystemChrome.setEnabledSystemUIOverlays([]);
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        body: YoYoPlayer(
+          key: ValueKey('testYoYo'),
+          url: url,
+          aspectRatio: aspectRatio,
+          onFullScreen: onFullScreen,
+          onPlayingVideo: onPlayingVideo,
+          videoLoadingStyle: videoLoadingStyle,
+          videoStyle: videoStyle,
+          fullScreen: fullScreen,
+        ),
+      ),
+    );
+  }
+
+  Future<bool> _onWillPop() async {
+    OrientationPlugin.forceOrientation(DeviceOrientation.portraitUp);
+    SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values);
+    return true;
   }
 }

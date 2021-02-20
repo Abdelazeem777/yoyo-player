@@ -2,21 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:yoyo_player/src/responses/play_response.dart';
 
-Widget bottomBar(
-    {VideoPlayerController controller,
-    String videoSeek,
-    String videoDuration,
-    Widget backwardIcon,
-    Widget forwardIcon,
-    bool showMenu,
-    Function play}) {
+Widget bottomBar({
+  VideoPlayerController controller,
+  String videoSeek,
+  String videoDuration,
+  Widget backwardIcon,
+  Widget forwardIcon,
+  bool showMenu,
+  Color progressIndicatorColor,
+  Function play,
+}) {
   return showMenu
       ? Align(
           alignment: Alignment.bottomCenter,
           child: Container(
-            height: 40,
+            height: 55,
             child: Padding(
-              padding: EdgeInsets.all(0.0),
+              padding: const EdgeInsets.all(0.0),
               child: Stack(
                 children: [
                   Column(
@@ -25,11 +27,11 @@ Widget bottomBar(
                         controller,
                         allowScrubbing: true,
                         colors: VideoProgressColors(
-                            playedColor: Color.fromARGB(250, 0, 255, 112)),
-                        padding: EdgeInsets.only(left: 5.0, right: 5),
+                            playedColor: progressIndicatorColor),
+                        padding: const EdgeInsets.all(8),
                       ),
                       Padding(
-                        padding: EdgeInsets.only(left: 5.0, right: 5.0),
+                        padding: const EdgeInsets.only(left: 8, right: 8),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -53,9 +55,10 @@ Widget bottomBar(
                   Align(
                     alignment: Alignment.bottomCenter,
                     child: Padding(
-                      padding: EdgeInsets.all(5.0),
+                      padding: const EdgeInsets.all(8.0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         mainAxisSize: MainAxisSize.max,
                         children: [
                           InkWell(
@@ -63,14 +66,17 @@ Widget bottomBar(
                                 rewind(controller);
                               },
                               child: backwardIcon),
-                          InkWell(
-                            onTap: play,
-                            child: Icon(
-                              controller.value.isPlaying
-                                  ? Icons.pause_circle_outline
-                                  : Icons.play_circle_outline,
-                              color: Colors.white,
-                              size: 35,
+                          Container(
+                            margin: const EdgeInsets.only(left: 6, right: 6),
+                            child: InkWell(
+                              onTap: play,
+                              child: Icon(
+                                controller.value.isPlaying
+                                    ? Icons.pause_circle_outline
+                                    : Icons.play_circle_outline,
+                                color: Colors.white,
+                                size: 40,
+                              ),
                             ),
                           ),
                           InkWell(

@@ -144,45 +144,14 @@ class _YoYoPlayerState extends State<YoYoPlayer>
         .animate(controlBarAnimationController);
     controlBottomBarAnimation = Tween(begin: -(36.0 + 0.0 * 2), end: 0.0)
         .animate(controlBarAnimationController);
-    var widgetsBinding = WidgetsBinding.instance;
 
-    widgetsBinding.addPostFrameCallback((callback) {
-      widgetsBinding.addPersistentFrameCallback((callback) {
-        if (context == null) return;
-        var orientation = MediaQuery.of(context).orientation;
-        bool _fullscreen;
-        if (orientation == Orientation.landscape) {
-          //Horizontal screen
-          _fullscreen = true;
-          SystemChrome.setEnabledSystemUIOverlays([]);
-        } else if (orientation == Orientation.portrait) {
-          _fullscreen = false;
-          SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values);
-        }
-        if (_fullscreen != fullScreen) {
-          setState(() {
-            fullScreen = !fullScreen;
-            _navigateLocally(context);
-            if (widget.onFullScreen != null) {
-              widget.onFullScreen(fullScreen);
-            }
-          });
-        }
-        //
-        widgetsBinding.scheduleFrame();
-      });
-    });
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
     Screen.keepOn(true);
   }
 
   @override
   void dispose() {
     m3u8clean();
+    showTime.cancel();
     controller.dispose();
     super.dispose();
   }
@@ -191,12 +160,8 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   Widget build(BuildContext context) {
     final videoChildren = <Widget>[
       GestureDetector(
-        onTap: () {
-          toggleControls();
-        },
-        onDoubleTap: () {
-          togglePlay();
-        },
+        onTap: toggleControls,
+        onDoubleTap: togglePlay,
         child: ClipRect(
           child: Container(
             width: double.infinity,
@@ -222,6 +187,14 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     );
   }
 
+  List<Widget> videoBuiltInChildren() {
+    return [
+      actionBar(),
+      btm(),
+      m3u8list(),
+    ];
+  }
+
   /// Video Player ActionBar
   Widget actionBar() {
     return showMenu
@@ -230,32 +203,29 @@ class _YoYoPlayerState extends State<YoYoPlayer>
             child: Container(
               height: 40,
               width: double.infinity,
-              // color: Colors.yellow,
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Container(
-                    width: 5,
+                    width: 8,
                   ),
+                  InkWell(
+                    onTap: _goBackToLastPage,
+                    child: Icon(
+                      Icons.arrow_back,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Spacer(),
                   topChip(
-                    Text(m3u8quality, style: widget.videoStyle.qualitystyle),
+                    Text(_getQualityText(m3u8quality),
+                        style: widget.videoStyle.qualitystyle),
                     () {
                       // quality function
                       m3u8show = true;
                     },
                   ),
                   Container(
-                    width: 5,
-                  ),
-                  InkWell(
-                    onTap: () => toggleFullScreen(),
-                    child: Icon(
-                      Icons.fullscreen,
-                      color: Colors.white,
-                    ),
-                  ),
-                  Container(
-                    width: 5,
+                    width: 8,
                   ),
                 ],
               ),
@@ -263,6 +233,10 @@ class _YoYoPlayerState extends State<YoYoPlayer>
           )
         : Container();
   }
+
+  ///Convert (1980x1080) to (1080p)
+  String _getQualityText(String qualityText) =>
+      qualityText == 'Auto' ? qualityText : qualityText.split('x')[1] + 'p';
 
   Widget m3u8list() {
     return m3u8show == true
@@ -287,7 +261,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
                                 child: Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: Text(
-                                    "${e.dataQuality}",
+                                    _getQualityText(e.dataQuality),
                                     style: widget.videoStyle.qaShowStyle,
                                   ),
                                 )),
@@ -300,14 +274,6 @@ class _YoYoPlayerState extends State<YoYoPlayer>
         : Container();
   }
 
-  List<Widget> videoBuiltInChildren() {
-    return [
-      actionBar(),
-      btm(),
-      m3u8list(),
-    ];
-  }
-
   Widget btm() {
     return showMenu
         ? bottomBar(
@@ -316,8 +282,9 @@ class _YoYoPlayerState extends State<YoYoPlayer>
             videoDuration: "$videoDuration",
             forwardIcon: widget.videoStyle.forward,
             backwardIcon: widget.videoStyle.backward,
+            progressIndicatorColor: widget.videoStyle.progressIndicatorColor,
             showMenu: showMenu,
-            play: () => togglePlay())
+            play: togglePlay)
         : Container();
   }
 
@@ -373,7 +340,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     }
   }
 
-// M3U8 Data Setup
+  // M3U8 Data Setup
   void getM3U8(String video) {
     if (yoyo.length > 0) {
       print("${yoyo.length} : data start clean");
@@ -475,14 +442,14 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     return m3u8s;
   }
 
-// Video controller
+  // Video controller
   void videoControlSetup(String url) {
     videoInit(url);
     controller.addListener(listener);
     controller.play();
   }
 
-// video Listener
+  // video Listener
   void listener() async {
     if (controller.value.initialized && controller.value.isPlaying) {
       if (!await Wakelock.isEnabled) {
@@ -505,7 +472,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   void createHideControlBarTimer() {
     clearHideControlBarTimer();
     showTime = Timer(Duration(milliseconds: 5000), () {
-      if (controller != null && controller.value.isPlaying) {
+      if (controller != null) {
         if (showMenu) {
           setState(() {
             showMenu = false;
@@ -542,6 +509,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
   void togglePlay() {
     createHideControlBarTimer();
+    showMenu = true;
     if (controller.value.isPlaying) {
       controller.pause();
     } else {
@@ -582,7 +550,11 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   }
 
   String convertDurationToString(Duration duration) {
-    var minutes = duration.inMinutes.toString();
+    var hours = (duration.inHours % 24).toString();
+    if (hours.length == 1) {
+      hours = '0' + hours;
+    }
+    var minutes = (duration.inMinutes % 60).toString();
     if (minutes.length == 1) {
       minutes = '0' + minutes;
     }
@@ -590,20 +562,12 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     if (seconds.length == 1) {
       seconds = '0' + seconds;
     }
-    return "$minutes:$seconds";
+    var durationString = '$minutes:$seconds';
+
+    return hours == '00' ? durationString : '$hours:' + durationString;
   }
 
-  void _navigateLocally(context) async {
-    if (!fullScreen) {
-      if (ModalRoute.of(context).willHandlePopInternally) {
-        Navigator.of(context).pop();
-      }
-      return;
-    }
-    ModalRoute.of(context).addLocalHistoryEntry(LocalHistoryEntry(onRemove: () {
-      if (fullScreen) toggleFullScreen();
-    }));
-  }
+  void _goBackToLastPage() => Navigator.of(context).pop();
 
   void onSelectQuality(M3U8pass data) async {
     controller.value.isPlaying ? controller.pause() : controller.pause();
@@ -628,13 +592,18 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   }
 
   void localM3U8play(File file) {
+    final lastDuration = controller.value.position;
+    print("lastDuration" + lastDuration.toString());
     controller = VideoPlayerController.file(
       file,
     )..initialize()
-        .then((_) => setState(() => hasInitError = false))
+        .then((_) => setState(() {
+              controller.addListener(listener);
+              controller.play();
+              controller.seekTo(lastDuration);
+              return hasInitError = false;
+            }))
         .catchError((e) => setState(() => hasInitError = true));
-    controller.addListener(listener);
-    controller.play();
   }
 
   void m3u8clean() async {
@@ -643,7 +612,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       try {
         final Directory directory = await getApplicationDocumentsDirectory();
         final File file = File('${directory.path}/${yoyo[i].dataQuality}.m3u8');
-        file.delete();
+        await file.delete();
         print("delete success $file");
       } catch (e) {
         print("Couldn't delete file $e");
@@ -661,14 +630,6 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       yoyo.clear();
     } catch (e) {
       print("m3u8 video list clean error $e");
-    }
-  }
-
-  void toggleFullScreen() {
-    if (fullScreen) {
-      OrientationPlugin.forceOrientation(DeviceOrientation.portraitUp);
-    } else {
-      OrientationPlugin.forceOrientation(DeviceOrientation.landscapeRight);
     }
   }
 }

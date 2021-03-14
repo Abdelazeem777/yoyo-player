@@ -132,8 +132,6 @@ class _YoYoPlayerStoryState extends State<YoYoPlayerStory>
   bool offline;
   // video auto quality
   String m3u8quality = "Auto";
-  // time for duration
-  Timer showTime;
   //Current ScreenSize
   Size get screenSize => MediaQuery.of(context).size;
   //
@@ -149,7 +147,6 @@ class _YoYoPlayerStoryState extends State<YoYoPlayerStory>
   @override
   void dispose() {
     m3u8clean();
-    showTime.cancel();
     controller.dispose();
     super.dispose();
   }
@@ -339,25 +336,6 @@ class _YoYoPlayerStoryState extends State<YoYoPlayerStory>
     controller.play();
   }
 
-  void createHideControlBarTimer() {
-    clearHideControlBarTimer();
-    showTime = Timer(Duration(milliseconds: 5000), () {
-      if (controller != null) {
-        if (showMenu) {
-          setState(() {
-            showMenu = false;
-            m3u8show = false;
-            controlBarAnimationController.reverse();
-          });
-        }
-      }
-    });
-  }
-
-  void clearHideControlBarTimer() {
-    showTime?.cancel();
-  }
-
   void videoInit(String url) {
     if (offline == false) {
       print(
@@ -387,24 +365,6 @@ class _YoYoPlayerStoryState extends State<YoYoPlayerStory>
             .then((value) => setState(() => hasInitError = false))
             .catchError((e) => setState(() => hasInitError = true));
     }
-  }
-
-  String convertDurationToString(Duration duration) {
-    var hours = (duration.inHours % 24).toString();
-    if (hours.length == 1) {
-      hours = '0' + hours;
-    }
-    var minutes = (duration.inMinutes % 60).toString();
-    if (minutes.length == 1) {
-      minutes = '0' + minutes;
-    }
-    var seconds = (duration.inSeconds % 60).toString();
-    if (seconds.length == 1) {
-      seconds = '0' + seconds;
-    }
-    var durationString = '$minutes:$seconds';
-
-    return hours == '00' ? durationString : '$hours:' + durationString;
   }
 
   void m3u8clean() async {

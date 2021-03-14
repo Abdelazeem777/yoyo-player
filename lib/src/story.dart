@@ -395,10 +395,14 @@ class _YoYoPlayerStoryState extends State<YoYoPlayerStory>
   }
 
   void _onVideoEndListener() {
-    if (controller.value.position == controller.value.duration) {
+    if (_isEnd()) {
       widget.onVideoEnd();
     }
   }
+
+  bool _isEnd() =>
+      controller.value.isInitialized &&
+      controller.value.position == controller.value.duration;
 
   Widget _buildLeftAndRightTapsDetector() {
     return Row(

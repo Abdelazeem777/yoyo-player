@@ -159,29 +159,33 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       GestureDetector(
         onTap: toggleControls,
         onDoubleTap: togglePlay,
-        child: ClipRect(
-          child: Container(
-            width: double.infinity,
-            height: double.infinity,
-            color: Colors.black,
-            child: Center(
-                child: AspectRatio(
-              aspectRatio: controller.value.aspectRatio,
-              child: VideoPlayer(controller),
-            )),
+        child: Container(
+          width: double.infinity,
+          height: double.infinity,
+          color: Colors.black,
+          alignment: Alignment.center,
+          child: LayoutBuilder(
+            builder: (context, constraints) => SizedBox.expand(
+              child: FittedBox(
+                fit: BoxFit.contain,
+                child: Container(
+                  width: 1980,
+                  height: 1080,
+                  alignment: Alignment.center,
+                  child: VideoPlayer(controller),
+                ),
+              ),
+            ),
           ),
         ),
       ),
     ];
     videoChildren.addAll(videoBuiltInChildren());
-    return AspectRatio(
-      aspectRatio: fullScreen
-          ? calculateAspectRatio(context, screenSize)
-          : widget.aspectRatio,
-      child: controller.value.isInitialized
-          ? Stack(children: videoChildren)
-          : widget.videoLoadingStyle.loading,
-    );
+    print('width: ${screenSize.width}');
+    print('height: ${screenSize.height}');
+    return controller.value.isInitialized
+        ? Stack(alignment: Alignment.center, children: videoChildren)
+        : widget.videoLoadingStyle.loading;
   }
 
   List<Widget> videoBuiltInChildren() {

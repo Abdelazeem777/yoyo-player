@@ -157,22 +157,20 @@ class _YoYoPlayerStoryState extends State<YoYoPlayerStory>
       VideoPlayer(controller),
       _buildLeftAndRightTapsDetector(),
     ];
-    return LayoutBuilder(builder: (context, constraints) {
-      return SizedBox.expand(
+    return LayoutBuilder(
+      builder: (context, constraints) => SizedBox.expand(
         child: FittedBox(
           fit: BoxFit.fitHeight,
           child: SizedBox(
             width: 1980,
             height: 1080,
             child: controller.value.isInitialized
-                ? Stack(
-                    children: videoChildren,
-                  )
+                ? Stack(children: videoChildren)
                 : widget.videoLoadingStyle.loading,
           ),
         ),
-      );
-    });
+      ),
+    );
   }
 
   void urlCheck(String url) {

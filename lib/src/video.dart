@@ -202,7 +202,7 @@ class __YoYoPlayerNormalState extends State<_YoYoPlayerNormal>
   @override
   void dispose() {
     m3u8clean();
-    showTime.cancel();
+    showTime?.cancel();
     controller.dispose();
     super.dispose();
   }
@@ -822,8 +822,7 @@ class __YoYoPlayerFullScreenState extends State<_YoYoPlayerFullScreen>
   @override
   void dispose() {
     m3u8clean();
-    showTime.cancel();
-    controller.removeListener(listener);
+    showTime?.cancel();
     controller.dispose();
     super.dispose();
   }

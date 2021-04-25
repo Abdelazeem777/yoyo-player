@@ -54,7 +54,6 @@ class YoYoPlayerFactory {
   Widget story({
     Key key,
     @required String url,
-    @required double aspectRatio,
     @required VideoStyle videoStyle,
     @required VideoLoadingStyle videoLoadingStyle,
     void Function(String videoType) onPlayingVideo,
@@ -65,7 +64,6 @@ class YoYoPlayerFactory {
       _YoYoPlayerStory(
         key: key,
         url: url,
-        aspectRatio: aspectRatio,
         videoStyle: videoStyle,
         videoLoadingStyle: videoLoadingStyle,
         onPlayingVideo: onPlayingVideo,
@@ -1340,9 +1338,6 @@ class _YoYoPlayerStory extends StatefulWidget {
   /// Video Loading Style
   final VideoLoadingStyle videoLoadingStyle;
 
-  /// Video AspectRatio [aspectRatio : 16 / 9 ]
-  final double aspectRatio;
-
   /// video Type
   final void Function(String videoType) onPlayingVideo;
 
@@ -1368,7 +1363,6 @@ class _YoYoPlayerStory extends StatefulWidget {
   _YoYoPlayerStory({
     Key key,
     @required this.url,
-    this.aspectRatio = 16 / 9,
     @required this.videoStyle,
     @required this.videoLoadingStyle,
     this.onPlayingVideo,

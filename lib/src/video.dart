@@ -18,7 +18,6 @@ class YoYoPlayerFactory {
   Widget normal({
     Key key,
     @required String url,
-    @required double aspectRatio,
     @required VideoStyle videoStyle,
     @required VideoLoadingStyle videoLoadingStyle,
     void Function(String videoType) onPlayingVideo,
@@ -26,7 +25,6 @@ class YoYoPlayerFactory {
       _YoYoPlayerNormal(
         key: key,
         url: url,
-        aspectRatio: aspectRatio,
         videoStyle: videoStyle,
         videoLoadingStyle: videoLoadingStyle,
         onPlayingVideo: onPlayingVideo,
@@ -35,7 +33,6 @@ class YoYoPlayerFactory {
   Widget fullScreen({
     Key key,
     @required String url,
-    @required double aspectRatio,
     @required VideoStyle videoStyle,
     @required VideoLoadingStyle videoLoadingStyle,
     void Function() onFullScreen,
@@ -44,7 +41,6 @@ class YoYoPlayerFactory {
       _YoYoPlayerFullScreen(
         key: key,
         url: url,
-        aspectRatio: aspectRatio,
         videoStyle: videoStyle,
         videoLoadingStyle: videoLoadingStyle,
         onFullScreen: onFullScreen,
@@ -101,9 +97,6 @@ class _YoYoPlayerNormal extends StatefulWidget {
   /// Video Loading Style
   final VideoLoadingStyle videoLoadingStyle;
 
-  /// Video AspectRatio [aspectRatio : 16 / 9 ]
-  final double aspectRatio;
-
   /// video Type
   final void Function(String videoType) onPlayingVideo;
 
@@ -116,14 +109,11 @@ class _YoYoPlayerNormal extends StatefulWidget {
   ///   videoStyle : VideoStyle(),
   /// //video loading style
   ///   videoLoadingStyle : VideoLoadingStyle(),
-  /// //video aspect ratio
-  ///   aspectRatio : 16/9,
   /// )
   /// ```
   _YoYoPlayerNormal({
     Key key,
     @required this.url,
-    @required this.aspectRatio,
     @required this.videoStyle,
     @required this.videoLoadingStyle,
     this.onPlayingVideo,
@@ -717,9 +707,6 @@ class _YoYoPlayerFullScreen extends StatefulWidget {
   /// Video Loading Style
   final VideoLoadingStyle videoLoadingStyle;
 
-  /// Video AspectRatio [aspectRatio : 16 / 9 ]
-  final double aspectRatio;
-
   /// video state fullScreen
   final void Function() onFullScreen;
 
@@ -735,14 +722,11 @@ class _YoYoPlayerFullScreen extends StatefulWidget {
   ///   videoStyle : VideoStyle(),
   /// //video loading style
   ///   videoLoadingStyle : VideoLoadingStyle(),
-  /// //video aspect ratio
-  ///   aspectRatio : 16/9,
   /// )
   /// ```
   _YoYoPlayerFullScreen({
     Key key,
     @required this.url,
-    @required this.aspectRatio,
     @required this.videoStyle,
     @required this.videoLoadingStyle,
     this.onFullScreen,
@@ -1355,8 +1339,6 @@ class _YoYoPlayerStory extends StatefulWidget {
   ///   videoStyle : VideoStyle(),
   /// //video loading style
   ///   videoLoadingStyle : VideoLoadingStyle(),
-  /// //video aspect ratio
-  ///   aspectRatio : 16/9,
   /// )
   /// ```
   _YoYoPlayerStory({
